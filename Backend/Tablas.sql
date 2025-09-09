@@ -17,7 +17,7 @@ CREATE TABLE Tipos_Inversion (
     Id_Tipo INT AUTO_INCREMENT PRIMARY KEY,
     Nombre_Tipo VARCHAR(50) NOT NULL,
     Descripcion TEXT,
-    Riesgo VARCHAR(20) -- Ej: 'Bajo', 'Medio', 'Alto'
+    Riesgo VARCHAR(20) -- Bajo, Medio y Alto'
 ) ENGINE=InnoDB;
 
 -- ==============================
@@ -30,7 +30,7 @@ CREATE TABLE Inversiones (
     Monto_Inicial DECIMAL(12,2) NOT NULL,
     Fecha_Inicio DATE NOT NULL,
     Fecha_Fin DATE,
-    Estado VARCHAR(20) NOT NULL, -- Ej: 'Activa', 'Finalizada', 'Cancelada'
+    Estado VARCHAR(20) NOT NULL, -- Activa, Finalizada y Cancelada
     FOREIGN KEY (Id_Inversionista) REFERENCES Inversionistas(Id_Inversionista),
     FOREIGN KEY (Id_Tipo) REFERENCES Tipos_Inversion(Id_Tipo)
 ) ENGINE=InnoDB;
@@ -42,7 +42,7 @@ CREATE TABLE Transacciones (
     Id_Transaccion INT AUTO_INCREMENT PRIMARY KEY,
     Id_Inversion INT NOT NULL,
     Fecha DATE NOT NULL,
-    Tipo_Movimiento VARCHAR(30) NOT NULL, -- Ej: 'Deposito', 'Retiro', 'Ganancia', 'Comision'
+    Tipo_Movimiento VARCHAR(30) NOT NULL, -- Deposito, Retiro, Ganancia y Comision
     Monto DECIMAL(12,2) NOT NULL,
     FOREIGN KEY (Id_Inversion) REFERENCES Inversiones(Id_Inversiones)
 ) ENGINE=InnoDB;
