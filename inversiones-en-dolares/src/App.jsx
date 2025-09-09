@@ -33,32 +33,16 @@ function App() {
   };
 
   // Función registro
-const registrarUsuario = async (e) => {
-  e.preventDefault();
+  const registrarUsuario = (e) => {
+    e.preventDefault();
 
-  if (nombre && apellido && email && pais && password) {
-    try {
-      const response = await fetch("http://localhost:3001/api/registro", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nombre, apellido, email, telefono, pais, password })
-      });
-
-      const data = await response.json();
-      if (response.ok) {
-        setRegistroExitoso(true);
-      } else {
-        alert(data.mensaje);
-      }
-    } catch (error) {
-      console.error(error);
-      alert("Error conectando con el servidor");
+    if (nombre && apellido && email && pais && password) {
+      setRegistroExitoso(true);
+    } else {
+      setRegistroExitoso(false);
+      alert("Por favor, completa todos los campos obligatorios.");
     }
-  } else {
-    alert("Por favor, completa todos los campos obligatorios.");
-  }
-};
-
+  };
 
   return (
     <div className="app-container">
@@ -117,8 +101,7 @@ const registrarUsuario = async (e) => {
               <div className="result">
                 <h3>Resultado de la inversión</h3>
                 <p>
-                  Al final del período tendrás:{" "}
-                  <strong>${resultado}</strong>
+                  Al final del período tendrás: <strong>${resultado}</strong>
                 </p>
               </div>
             )}
