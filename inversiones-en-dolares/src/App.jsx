@@ -2,16 +2,15 @@ import React, { useState } from "react";
 import "./App.css";
 
 function App() {
-  // Estados para el simulador
+  // -------- Estados simulador --------
   const [monto, setMonto] = useState("");
   const [tiempo, setTiempo] = useState("");
-  const [interes, setInteres] = useState("");
   const [resultado, setResultado] = useState(null);
 
-  // Estado para manejar secciones (false = simulador, true = registro)
+  // -------- Estados navegación --------
   const [mostrarRegistro, setMostrarRegistro] = useState(false);
 
-  // Estados del registro
+  // -------- Estados registro --------
   const [nombre, setNombre] = useState("");
   const [apellido, setApellido] = useState("");
   const [email, setEmail] = useState("");
@@ -20,19 +19,33 @@ function App() {
   const [password, setPassword] = useState("");
   const [registroExitoso, setRegistroExitoso] = useState(false);
 
-  // Función simulador
+  // -------- Constante de interés anual (5 %) --------
+  const INTERES_ANUAL = 0.05;
+
+  // -------- Funciones --------
   const calcularInversion = (e) => {
     e.preventDefault();
 
     const P = parseFloat(monto);
-    const r = parseFloat(interes) / 100;
-    const t = parseInt(tiempo);
+    const dias = parseInt(tiempo);
 
-    const A = P * Math.pow(1 + r / 12, t);
+    // Validaciones
+    if (isNaN(P) || P < 100 || P > 100000) {
+      alert("El monto debe estar entre 100 y 100000 dólares.");
+      return;
+    }
+    if (isNaN(dias) || dias < 1 || dias > 365) {
+      alert("El tiempo debe estar entre 1 y 365 días.");
+      return;
+    }
+
+    // Interés compuesto diario
+    const tasaDiaria = INTERES_ANUAL / 365;
+    const A = P * Math.pow(1 + tasaDiaria, dias);
+
     setResultado(A.toFixed(2));
   };
 
-  // Función registro
   const registrarUsuario = (e) => {
     e.preventDefault();
 
@@ -44,9 +57,10 @@ function App() {
     }
   };
 
+  // -------- Render --------
   return (
     <div className="app-container">
-      {/* Navbar (siempre visible) */}
+      {/* Navbar */}
       <nav className="navbar">
         <h2 className="logo">Inversiones</h2>
         <ul className="nav-links">
@@ -57,7 +71,6 @@ function App() {
         </ul>
       </nav>
 
-      {/* Contenido principal */}
       <main className="main-content">
         {!mostrarRegistro ? (
           <>
@@ -75,21 +88,11 @@ function App() {
               </label>
 
               <label>
-                Tiempo (meses):
+                Tiempo (días):
                 <input
                   type="number"
                   value={tiempo}
                   onChange={(e) => setTiempo(e.target.value)}
-                  required
-                />
-              </label>
-
-              <label>
-                Interés anual (%):
-                <input
-                  type="number"
-                  value={interes}
-                  onChange={(e) => setInteres(e.target.value)}
                   required
                 />
               </label>
