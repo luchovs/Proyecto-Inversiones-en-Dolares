@@ -46,13 +46,33 @@ function App() {
     setResultado(A.toFixed(2));
   };
 
-  const registrarUsuario = (e) => {
+  const registrarUsuario = async (e) => {
     e.preventDefault();
-
     if (nombre && apellido && email && pais && password) {
-      setRegistroExitoso(true);
+      try {
+        const response = await fetch("http://127.0.0.1:8080/registro", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            nombre,
+            apellido,
+            email,
+            telefono,
+            pais,
+            password,
+          }),
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+          setRegistroExitoso(true);
+        } else {
+          alert("Error: " + data.error);
+        }
+      } catch (error) {
+        alert("Error de red: " + error);
+      }
     } else {
-      setRegistroExitoso(false);
       alert("Por favor, completa todos los campos obligatorios.");
     }
   };
