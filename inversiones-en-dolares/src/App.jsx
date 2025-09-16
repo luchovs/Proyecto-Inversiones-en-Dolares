@@ -21,7 +21,7 @@ function App() {
   const [registroExitoso, setRegistroExitoso] = useState(false);
 
   // -------- Login --------
-  const [loginEmail, setLoginEmail] = useState("");
+  const [loginUsuario, setLoginUsuario] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   const [loginExitoso, setLoginExitoso] = useState(false);
 
@@ -85,7 +85,10 @@ function App() {
       const response = await fetch("http://127.0.0.1:8080/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: loginEmail, password: loginPassword }),
+        body: JSON.stringify({
+          usuario: loginUsuario,
+          password: loginPassword,
+        }), // <--- usuario
       });
       const data = await response.json();
       if (response.ok) {
@@ -233,11 +236,11 @@ function App() {
             <h1>Iniciar Sesión</h1>
             <form className="form-container" onSubmit={iniciarSesion}>
               <label>
-                Email:
+                Usuario:
                 <input
-                  type="email"
-                  value={loginEmail}
-                  onChange={(e) => setLoginEmail(e.target.value)}
+                  type="text"
+                  value={loginUsuario}
+                  onChange={(e) => setLoginUsuario(e.target.value)}
                   required
                 />
               </label>
