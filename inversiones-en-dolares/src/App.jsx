@@ -7,29 +7,32 @@ function App() {
   const [tiempo, setTiempo] = useState("");
   const [resultado, setResultado] = useState(null);
 
-  // -------- Estados navegación --------
-  const [mostrarRegistro, setMostrarRegistro] = useState(false);
+  // -------- Navegación --------
+  const [vista, setVista] = useState("inicio"); // "inicio" | "registro" | "login"
 
-  // -------- Estados registro --------
+  // -------- Registro --------
   const [nombre, setNombre] = useState("");
   const [apellido, setApellido] = useState("");
   const [email, setEmail] = useState("");
   const [telefono, setTelefono] = useState("");
   const [pais, setPais] = useState("");
+  const [usuario, setUsuario] = useState("");
   const [password, setPassword] = useState("");
   const [registroExitoso, setRegistroExitoso] = useState(false);
 
-  // -------- Constante de interés anual (5 %) --------
+  // -------- Login --------
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
+  const [loginExitoso, setLoginExitoso] = useState(false);
+
   const INTERES_ANUAL = 0.05;
 
   // -------- Funciones --------
   const calcularInversion = (e) => {
     e.preventDefault();
-
     const P = parseFloat(monto);
     const dias = parseInt(tiempo);
 
-    // Validaciones
     if (isNaN(P) || P < 100 || P > 100000) {
       alert("El monto debe estar entre 100 y 100000 dólares.");
       return;
@@ -39,10 +42,8 @@ function App() {
       return;
     }
 
-    // Interés compuesto diario
     const tasaDiaria = INTERES_ANUAL / 365;
     const A = P * Math.pow(1 + tasaDiaria, dias);
-
     setResultado(A.toFixed(2));
   };
 
@@ -59,10 +60,10 @@ function App() {
             email,
             telefono,
             pais,
+            usuario,
             password,
           }),
         });
-
         const data = await response.json();
         if (response.ok) {
           setRegistroExitoso(true);
@@ -77,6 +78,26 @@ function App() {
     }
   };
 
+  // ---- NUEVO: login ----
+  const iniciarSesion = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await fetch("http://127.0.0.1:8080/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: loginEmail, password: loginPassword }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setLoginExitoso(true);
+      } else {
+        alert("Credenciales inválidas: " + data.error);
+      }
+    } catch (error) {
+      alert("Error de red: " + error);
+    }
+  };
+
   // -------- Render --------
   return (
     <div className="app-container">
@@ -84,18 +105,17 @@ function App() {
       <nav className="navbar">
         <h2 className="logo">Inversiones</h2>
         <ul className="nav-links">
-          <li onClick={() => setMostrarRegistro(false)}>Inicio</li>
-          <li onClick={() => setMostrarRegistro(false)}>Simulación</li>
-          <li onClick={() => setMostrarRegistro(true)}>Regístrate</li>
-          <li>Contacto</li>
+          <li onClick={() => setVista("inicio")}>Inicio</li>
+          <li onClick={() => setVista("inicio")}>Simulación</li>
+          <li onClick={() => setVista("registro")}>Regístrate</li>
+          <li onClick={() => setVista("login")}>Iniciar sesión</li>
         </ul>
       </nav>
 
       <main className="main-content">
-        {!mostrarRegistro ? (
+        {vista === "inicio" && (
           <>
             <h1>Simulador de Inversiones en Dólares</h1>
-
             <form className="form-container" onSubmit={calcularInversion}>
               <label>
                 Monto en dólares:
@@ -106,7 +126,6 @@ function App() {
                   required
                 />
               </label>
-
               <label>
                 Tiempo (días):
                 <input
@@ -116,10 +135,8 @@ function App() {
                   required
                 />
               </label>
-
               <button type="submit">Calcular</button>
             </form>
-
             {resultado && (
               <div className="result">
                 <h3>Resultado de la inversión</h3>
@@ -129,10 +146,11 @@ function App() {
               </div>
             )}
           </>
-        ) : (
+        )}
+
+        {vista === "registro" && (
           <>
             <h1>Registro de Inversionista</h1>
-
             <form className="form-container" onSubmit={registrarUsuario}>
               <label>
                 Nombre:
@@ -143,7 +161,6 @@ function App() {
                   required
                 />
               </label>
-
               <label>
                 Apellido:
                 <input
@@ -153,7 +170,6 @@ function App() {
                   required
                 />
               </label>
-
               <label>
                 Email:
                 <input
@@ -163,7 +179,6 @@ function App() {
                   required
                 />
               </label>
-
               <label>
                 Teléfono:
                 <input
@@ -172,7 +187,6 @@ function App() {
                   onChange={(e) => setTelefono(e.target.value)}
                 />
               </label>
-
               <label>
                 País de residencia:
                 <input
@@ -182,7 +196,15 @@ function App() {
                   required
                 />
               </label>
-
+              <label>
+                Nombre de Usuario:
+                <input
+                  type="text"
+                  value={usuario}
+                  onChange={(e) => setUsuario(e.target.value)}
+                  required
+                />
+              </label>
               <label>
                 Contraseña:
                 <input
@@ -192,16 +214,48 @@ function App() {
                   required
                 />
               </label>
-
               <button type="submit">Registrarse</button>
             </form>
-
             {registroExitoso && (
               <div className="result">
                 <p>Inversionista registrado con éxito</p>
                 <p>
                   Bienvenido, {nombre} {apellido}
                 </p>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* --- NUEVO: vista login --- */}
+        {vista === "login" && (
+          <>
+            <h1>Iniciar Sesión</h1>
+            <form className="form-container" onSubmit={iniciarSesion}>
+              <label>
+                Email:
+                <input
+                  type="email"
+                  value={loginEmail}
+                  onChange={(e) => setLoginEmail(e.target.value)}
+                  required
+                />
+              </label>
+              <label>
+                Contraseña:
+                <input
+                  type="password"
+                  value={loginPassword}
+                  onChange={(e) => setLoginPassword(e.target.value)}
+                  required
+                />
+              </label>
+              <button type="submit">Ingresar</button>
+            </form>
+            {loginExitoso && (
+              <div className="result">
+                <p>Inicio de sesión exitoso</p>
+                <p>Bienvenido nuevamente</p>
               </div>
             )}
           </>

@@ -3,11 +3,13 @@
 -- ==============================
 CREATE TABLE Inversionistas (
     Id_Inversionista INT AUTO_INCREMENT PRIMARY KEY,
-    Nombre VARCHAR(50) NOT NULL,
-    Apellido VARCHAR(50) NOT NULL,
-    Email VARCHAR(100) NOT NULL,
-    Telefono VARCHAR(20),
-    Pais_Residencia VARCHAR(50) NOT NULL
+    Nombre VARCHAR(20) NOT NULL,
+    Apellido VARCHAR(20) NOT NULL,
+    Email VARCHAR(50) NOT NULL,
+    Telefono VARCHAR(10), NOT NULL,
+    Pais_Residencia VARCHAR(20) NOT NULL,
+    Usuario VARCHAR (20) NOT NULL,
+    Password VARCHAR(20) NOT NULL
 ) ENGINE=InnoDB;
 
 -- ==============================

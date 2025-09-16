@@ -27,6 +27,7 @@ def registro():
     email    = data.get("email")
     telefono = data.get("telefono")
     pais     = data.get("pais")
+    usuario  = data.get("usuario")
     password = data.get("password")
 
     try:
@@ -35,10 +36,10 @@ def registro():
 
         sql = """
         INSERT INTO Inversionistas
-        (Nombre, Apellido, Email, Telefono, Pais_Residencia)
-        VALUES (%s, %s, %s, %s, %s)
+        (Nombre, Apellido, Email, Telefono, Pais_Residencia, Usuario, Password)
+        VALUES (%s, %s, %s, %s, %s, %s, %s)
         """
-        cursor.execute(sql, (nombre, apellido, email, telefono, pais))
+        cursor.execute(sql, (nombre, apellido, email, telefono, pais, usuario, password))
         conn.commit()
 
         cursor.close()
