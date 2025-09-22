@@ -2,15 +2,12 @@ import React, { useState } from "react";
 import "./App.css";
 
 function App() {
-  // -------- Estados simulador --------
   const [monto, setMonto] = useState("");
   const [tiempo, setTiempo] = useState("");
   const [resultado, setResultado] = useState(null);
 
-  // -------- Navegación --------
-  const [vista, setVista] = useState("inicio"); // "inicio" | "simulacion" | "registro" | "login"
+  const [vista, setVista] = useState("inicio");
 
-  // -------- Registro --------
   const [nombre, setNombre] = useState("");
   const [apellido, setApellido] = useState("");
   const [email, setEmail] = useState("");
@@ -20,14 +17,12 @@ function App() {
   const [password, setPassword] = useState("");
   const [registroExitoso, setRegistroExitoso] = useState(false);
 
-  // -------- Login --------
   const [loginUsuario, setLoginUsuario] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   const [loginExitoso, setLoginExitoso] = useState(false);
 
   const INTERES_ANUAL = 0.05;
 
-  // -------- Funciones --------
   const calcularInversion = (e) => {
     e.preventDefault();
     const P = parseFloat(monto);
@@ -63,17 +58,12 @@ function App() {
           }),
         });
         const data = await response.json();
-        if (response.ok) {
-          setRegistroExitoso(true);
-        } else {
-          alert("Error: " + data.error);
-        }
+        if (response.ok) setRegistroExitoso(true);
+        else alert("Error: " + data.error);
       } catch (error) {
         alert("Error de red: " + error);
       }
-    } else {
-      alert("Por favor, completa todos los campos obligatorios.");
-    }
+    } else alert("Por favor, completa todos los campos obligatorios.");
   };
 
   const iniciarSesion = async (e) => {
@@ -85,11 +75,8 @@ function App() {
         body: JSON.stringify({ usuario: loginUsuario, password: loginPassword }),
       });
       const data = await response.json();
-      if (response.ok) {
-        setLoginExitoso(true);
-      } else {
-        alert("Credenciales inválidas: " + data.error);
-      }
+      if (response.ok) setLoginExitoso(true);
+      else alert("Credenciales inválidas: " + data.error);
     } catch (error) {
       alert("Error de red: " + error);
     }
@@ -114,21 +101,18 @@ function App() {
 
       <main className="main-content">
         {vista === "inicio" && (
-          <>
-            <div className="inicio-fondo">
-              <div className="inicio-cuadro">
-                <h1>Invertí tus ahorros en dólares</h1>
-                <button
-                  className="invertir-boton"
-                  onClick={() => setVista("registro")}
-                >
-                  Comenzar a invertir
-                </button>
-              </div>
+          <div className="inicio-fondo">
+            <div className="inicio-cuadro">
+              <h1>Invertí tus ahorros en dólares</h1>
+              <button
+                className="invertir-boton"
+                onClick={() => setVista("registro")}
+              >
+                Comenzar a invertir
+              </button>
             </div>
-          </>
+          </div>
         )}
-
 
         {vista === "simulacion" && (
           <>
@@ -157,9 +141,7 @@ function App() {
             {resultado && (
               <div className="result">
                 <h3>Resultado de la inversión</h3>
-                <p>
-                  Al final del período tendrás: <strong>${resultado}</strong>
-                </p>
+                <p>Al final del período tendrás: <strong>${resultado}</strong></p>
               </div>
             )}
           </>
@@ -171,74 +153,38 @@ function App() {
             <form className="form-container" onSubmit={registrarUsuario}>
               <label>
                 Nombre:
-                <input
-                  type="text"
-                  value={nombre}
-                  onChange={(e) => setNombre(e.target.value)}
-                  required
-                />
+                <input type="text" value={nombre} onChange={(e) => setNombre(e.target.value)} required/>
               </label>
               <label>
                 Apellido:
-                <input
-                  type="text"
-                  value={apellido}
-                  onChange={(e) => setApellido(e.target.value)}
-                  required
-                />
+                <input type="text" value={apellido} onChange={(e) => setApellido(e.target.value)} required/>
               </label>
               <label>
                 Email:
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
+                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required/>
               </label>
               <label>
                 Teléfono:
-                <input
-                  type="text"
-                  value={telefono}
-                  onChange={(e) => setTelefono(e.target.value)}
-                />
+                <input type="text" value={telefono} onChange={(e) => setTelefono(e.target.value)} />
               </label>
               <label>
                 País de residencia:
-                <input
-                  type="text"
-                  value={pais}
-                  onChange={(e) => setPais(e.target.value)}
-                  required
-                />
+                <input type="text" value={pais} onChange={(e) => setPais(e.target.value)} required/>
               </label>
               <label>
                 Nombre de Usuario:
-                <input
-                  type="text"
-                  value={usuario}
-                  onChange={(e) => setUsuario(e.target.value)}
-                  required
-                />
+                <input type="text" value={usuario} onChange={(e) => setUsuario(e.target.value)} required/>
               </label>
               <label>
                 Contraseña:
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
+                <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required/>
               </label>
               <button type="submit">Registrarse</button>
             </form>
             {registroExitoso && (
               <div className="result">
                 <p>Inversionista registrado con éxito</p>
-                <p>
-                  Bienvenido, {nombre} {apellido}
-                </p>
+                <p>Bienvenido, {nombre} {apellido}</p>
               </div>
             )}
           </>
@@ -250,21 +196,11 @@ function App() {
             <form className="form-container" onSubmit={iniciarSesion}>
               <label>
                 Usuario:
-                <input
-                  type="text"
-                  value={loginUsuario}
-                  onChange={(e) => setLoginUsuario(e.target.value)}
-                  required
-                />
+                <input type="text" value={loginUsuario} onChange={(e) => setLoginUsuario(e.target.value)} required/>
               </label>
               <label>
                 Contraseña:
-                <input
-                  type="password"
-                  value={loginPassword}
-                  onChange={(e) => setLoginPassword(e.target.value)}
-                  required
-                />
+                <input type="password" value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} required/>
               </label>
               <button type="submit">Ingresar</button>
             </form>

@@ -1,6 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&display=swap');
 
-/* Estilos globales */
 body {
   margin: 0;
   font-family: 'DM Serif Display', serif;
@@ -8,24 +7,22 @@ body {
   color: #333;
 }
 
-/* Contenedor general */
 .app-container {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  text-align: center;
 }
 
 .main-content {
   flex: 1;
   padding: 20px;
-  text-align: center;
 }
 
 h1 {
   color: #070e46;
 }
 
-/* Navbar */
 .navbar {
   background: #070e46;
   color: white;
@@ -35,8 +32,10 @@ h1 {
   align-items: center;
 }
 
-.navbar .logo {
-  margin: 0;
+.navbar .logo-img {
+  height: 80px;
+  width: auto;
+  cursor: pointer;
 }
 
 .nav-links {
@@ -54,7 +53,6 @@ h1 {
   color: #ffd700;
 }
 
-/* Formulario */
 .form-container {
   background: white;
   padding: 20px;
@@ -94,41 +92,11 @@ button:hover {
   background: #070e46;
 }
 
-/* Resultado */
 .result {
   margin-top: 30px;
   background: #eaf4ff;
   padding: 15px;
   border-radius: 8px;
-}
-
-/* Footer */
-.footer {
-  background: #333;
-  color: white;
-  text-align: center;
-  padding: 15px;
-}
-
-.invertir-boton {
-  background: #070e46;
-  color: #fff;
-  border: none;
-  padding: 12px 25px;
-  font-size: 16px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background 0.3s;
-}
-
-.invertir-boton:hover {
-  background: #070e46;
-}
-
-.logo-img {
-  height: 80px;
-  width: auto;
-  cursor: pointer;
 }
 
 .inicio-fondo {
@@ -152,4 +120,19 @@ button:hover {
   border-radius: 20px;
   box-shadow: 0 4px 8px rgba(0,0,0,0.5);
   max-width: 350px;
+}
+
+.invertir-boton {
+  background: #070e46;
+  color: #fff;
+  border: none;
+  padding: 12px 25px;
+  font-size: 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.invertir-boton:hover {
+  background: #070e46;
 }
