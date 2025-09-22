@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, session
+from flask import Flask, request, jsonify
 import mysql.connector
 from flask_cors import CORS
 
@@ -21,14 +21,6 @@ def home():
 @app.route("/registro", methods=["POST"])
 def registro():
     data = request.get_json()
-    nombre = data.get("nombre")
-    apellido = data.get("apellido")
-    email = data.get("email")
-    telefono = data.get("telefono")
-    pais = data.get("pais")
-    usuario = data.get("usuario")
-    password = data.get("password")
-
     try:
         conn = mysql.connector.connect(**db_config)
         cursor = conn.cursor()
@@ -37,7 +29,15 @@ def registro():
         (Nombre, Apellido, Email, Telefono, Pais_Residencia, Usuario, Password)
         VALUES (%s, %s, %s, %s, %s, %s, %s)
         """
-        cursor.execute(sql, (nombre, apellido, email, telefono, pais, usuario, password))
+        cursor.execute(sql, (
+            data.get("nombre"),
+            data.get("apellido"),
+            data.get("email"),
+            data.get("telefono"),
+            data.get("pais"),
+            data.get("usuario"),
+            data.get("password"),
+        ))
         conn.commit()
         cursor.close()
         conn.close()
@@ -50,7 +50,6 @@ def login():
     data = request.get_json()
     usuario = data.get("usuario")
     password = data.get("password")
-
     try:
         conn = mysql.connector.connect(**db_config)
         cursor = conn.cursor(dictionary=True)
@@ -62,10 +61,17 @@ def login():
         if not user:
             return jsonify({"error": "Usuario no encontrado"}), 404
         if user["Password"] == password:
-            return jsonify({"message": "Login exitoso"})
+            user_data = {
+                "nombre": user["Nombre"],
+                "apellido": user["Apellido"],
+                "email": user["Email"],
+                "telefono": user["Telefono"],
+                "pais": user["Pais_Residencia"],
+                "usuario": user["Usuario"]
+            }
+            return jsonify({"message": "Login exitoso", "usuario": user_data})
         else:
             return jsonify({"error": "Contraseña incorrecta"}), 401
-
     except mysql.connector.Error as err:
         return jsonify({"error": str(err)}), 500
 
@@ -79,6 +85,32 @@ def obtener_inversionistas():
         cursor.close()
         conn.close()
         return jsonify(resultados)
+    except mysql.connector.Error as err:
+        return jsonify({"error": str(err)}), 500
+
+@app.route("/editar_usuario", methods=["PUT"])
+def editar_usuario():
+    data = request.get_json()
+    try:
+        conn = mysql.connector.connect(**db_config)
+        cursor = conn.cursor()
+        sql = """
+        UPDATE Inversionistas
+        SET Nombre=%s, Apellido=%s, Email=%s, Telefono=%s, Pais_Residencia=%s
+        WHERE Usuario=%s
+        """
+        cursor.execute(sql, (
+            data.get("nombre"),
+            data.get("apellido"),
+            data.get("email"),
+            data.get("telefono"),
+            data.get("pais"),
+            data.get("usuario")
+        ))
+        conn.commit()
+        cursor.close()
+        conn.close()
+        return jsonify({"message": "Datos actualizados correctamente"})
     except mysql.connector.Error as err:
         return jsonify({"error": str(err)}), 500
 
