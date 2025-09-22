@@ -8,7 +8,7 @@ function App() {
   const [resultado, setResultado] = useState(null);
 
   // -------- Navegación --------
-  const [vista, setVista] = useState("inicio"); // "inicio" | "registro" | "login"
+  const [vista, setVista] = useState("inicio"); // "inicio" | "simulacion" | "registro" | "login"
 
   // -------- Registro --------
   const [nombre, setNombre] = useState("");
@@ -32,7 +32,6 @@ function App() {
     e.preventDefault();
     const P = parseFloat(monto);
     const dias = parseInt(tiempo);
-
     if (isNaN(P) || P < 100 || P > 100000) {
       alert("El monto debe estar entre 100 y 100000 dólares.");
       return;
@@ -41,7 +40,6 @@ function App() {
       alert("El tiempo debe estar entre 1 y 365 días.");
       return;
     }
-
     const tasaDiaria = INTERES_ANUAL / 365;
     const A = P * Math.pow(1 + tasaDiaria, dias);
     setResultado(A.toFixed(2));
@@ -78,17 +76,13 @@ function App() {
     }
   };
 
-  // ---- NUEVO: login ----
   const iniciarSesion = async (e) => {
     e.preventDefault();
     try {
       const response = await fetch("http://127.0.0.1:8080/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          usuario: loginUsuario,
-          password: loginPassword,
-        }), // <--- usuario
+        body: JSON.stringify({ usuario: loginUsuario, password: loginPassword }),
       });
       const data = await response.json();
       if (response.ok) {
@@ -101,15 +95,18 @@ function App() {
     }
   };
 
-  // -------- Render --------
   return (
     <div className="app-container">
-      {/* Navbar */}
       <nav className="navbar">
-        <h2 className="logo">Inversiones</h2>
+        <img
+          src="/logo.png"
+          alt="Logo Inversiones"
+          className="logo-img"
+          onClick={() => setVista("inicio")}
+        />
         <ul className="nav-links">
           <li onClick={() => setVista("inicio")}>Inicio</li>
-          <li onClick={() => setVista("inicio")}>Simulación</li>
+          <li onClick={() => setVista("simulacion")}>Simulación</li>
           <li onClick={() => setVista("registro")}>Regístrate</li>
           <li onClick={() => setVista("login")}>Iniciar sesión</li>
         </ul>
@@ -117,6 +114,23 @@ function App() {
 
       <main className="main-content">
         {vista === "inicio" && (
+          <>
+            <div className="inicio-fondo">
+              <div className="inicio-cuadro">
+                <h1>Invertí tus ahorros en dólares</h1>
+                <button
+                  className="invertir-boton"
+                  onClick={() => setVista("registro")}
+                >
+                  Comenzar a invertir
+                </button>
+              </div>
+            </div>
+          </>
+        )}
+
+
+        {vista === "simulacion" && (
           <>
             <h1>Simulador de Inversiones en Dólares</h1>
             <form className="form-container" onSubmit={calcularInversion}>
@@ -230,7 +244,6 @@ function App() {
           </>
         )}
 
-        {/* --- NUEVO: vista login --- */}
         {vista === "login" && (
           <>
             <h1>Iniciar Sesión</h1>

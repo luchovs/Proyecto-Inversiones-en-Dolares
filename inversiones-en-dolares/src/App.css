@@ -1,7 +1,9 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&display=swap');
+
 /* Estilos globales */
 body {
   margin: 0;
-  font-family: Arial, sans-serif;
+  font-family: 'DM Serif Display', serif;
   background: #f0f2f5;
   color: #333;
 }
@@ -20,14 +22,14 @@ body {
 }
 
 h1 {
-  color: #0066cc;
+  color: #070e46;
 }
 
 /* Navbar */
 .navbar {
-  background: #0066cc;
+  background: #070e46;
   color: white;
-  padding: 15px 30px;
+  padding: 0px 30px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -80,7 +82,7 @@ h1 {
 button {
   width: 100%;
   padding: 10px;
-  background: #0066cc;
+  background: #070e46;
   color: white;
   border: none;
   border-radius: 5px;
@@ -89,7 +91,7 @@ button {
 }
 
 button:hover {
-  background: #004a99;
+  background: #070e46;
 }
 
 /* Resultado */
@@ -106,4 +108,48 @@ button:hover {
   color: white;
   text-align: center;
   padding: 15px;
+}
+
+.invertir-boton {
+  background: #070e46;
+  color: #fff;
+  border: none;
+  padding: 12px 25px;
+  font-size: 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.invertir-boton:hover {
+  background: #070e46;
+}
+
+.logo-img {
+  height: 80px;
+  width: auto;
+  cursor: pointer;
+}
+
+.inicio-fondo {
+  background-image: url("/fondo.png");
+  background-size: cover;
+  background-position: center;
+  margin: 5px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 30px;
+  min-height: 400px;
+}
+
+.inicio-cuadro {
+  background: #ffffff;
+  color: #070e46;
+  text-align: left;
+  padding: 40px 150px;
+  border-radius: 20px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+  max-width: 350px;
 }
