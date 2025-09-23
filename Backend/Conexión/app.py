@@ -120,5 +120,14 @@ def editar_usuario():
     except mysql.connector.Error as err:
         return jsonify({"error": str(err)}), 500
 
+@app.route("/test_env")
+def test_env():
+    return jsonify({
+        "host": os.getenv("DB_HOST"),
+        "user": os.getenv("DB_USER"),
+        "database": os.getenv("DB_NAME")
+    })
+
+
 if __name__ == "__main__":
     app.run(port=int(os.getenv("PORT", 8080)), debug=True)
