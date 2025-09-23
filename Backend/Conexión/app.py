@@ -1,17 +1,23 @@
 from flask import Flask, request, jsonify
 import mysql.connector
 from flask_cors import CORS
+import os
+from dotenv import load_dotenv
+
+# Cargar variables del archivo .env
+load_dotenv()
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
-app.secret_key = "clave_super_secreta"
+app.secret_key = os.getenv("SECRET_KEY", "clave_por_defecto")
 
+# Configuración de la base de datos desde .env
 db_config = {
-    "host": "10.9.120.5",
-    "user": "fa",
-    "password": "fa1234",
-    "database": "FA15",
-    "port": 3306
+    "host": os.getenv("DB_HOST"),
+    "user": os.getenv("DB_USER"),
+    "password": os.getenv("DB_PASSWORD"),
+    "database": os.getenv("DB_NAME"),
+    "port": int(os.getenv("DB_PORT", 3306))
 }
 
 @app.route("/")
@@ -115,4 +121,4 @@ def editar_usuario():
         return jsonify({"error": str(err)}), 500
 
 if __name__ == "__main__":
-    app.run(port=8080, debug=True)
+    app.run(port=int(os.getenv("PORT", 8080)), debug=True)
