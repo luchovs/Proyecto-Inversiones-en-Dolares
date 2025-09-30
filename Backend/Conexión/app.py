@@ -6,6 +6,9 @@ from dotenv import load_dotenv
 
 # Cargar variables del archivo .env
 load_dotenv()
+import os
+print("DEBUG ENV:", os.getenv("DB_HOST"), os.getenv("DB_USER"), os.getenv("DB_NAME"))
+
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})

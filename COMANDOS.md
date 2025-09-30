@@ -5,6 +5,7 @@ Backend:
 python -m venv venv
 source venv/bin/activate
 pip install flask flask-cors mysql-connector-python
+pip install python-dotenv
 python app.py
 
 Frontend:
