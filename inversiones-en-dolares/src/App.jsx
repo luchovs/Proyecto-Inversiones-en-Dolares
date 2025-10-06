@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./App.css";
 
 function App() {
@@ -21,7 +21,6 @@ function App() {
   const [loginPassword, setLoginPassword] = useState("");
   const [loginExitoso, setLoginExitoso] = useState(false);
 
-  // Datos del usuario logueado
   const [usuarioData, setUsuarioData] = useState({
     nombre: "",
     apellido: "",
@@ -32,6 +31,42 @@ function App() {
   });
 
   const INTERES_ANUAL = 0.05;
+
+  // --- Conversión a dólares ---
+  const [conversionMonto, setConversionMonto] = useState("");
+  const [conversionTipo, setConversionTipo] = useState("ARS"); // ARS o BTC
+  const [conversionResultado, setConversionResultado] = useState(null);
+
+  // Estado para la cotización del dólar oficial
+  const [dolarOficial, setDolarOficial] = useState({
+    compra: 1400,
+    venta: 1450,
+    fechaActualizacion: "2025-10-06T09:54:00.000Z"
+  });
+
+  const BTC_USD = 124623.3;
+
+  // --- Traer cotización actual de DolarApi ---
+  useEffect(() => {
+    const fetchDolar = async () => {
+      try {
+        const response = await fetch("https://www.dolarapi.com/api/v1/dolares/oficial");
+        const data = await response.json();
+        setDolarOficial({
+          compra: data.compra,
+          venta: data.venta,
+          fechaActualizacion: data.fechaActualizacion
+        });
+      } catch (error) {
+        console.error("Error al obtener el dólar:", error);
+      }
+    };
+
+    fetchDolar(); // primera llamada al cargar
+
+    const interval = setInterval(fetchDolar, 300000); // actualizar cada 5 minutos
+    return () => clearInterval(interval); // limpiar intervalo
+  }, []);
 
   const calcularInversion = (e) => {
     e.preventDefault();
@@ -48,6 +83,23 @@ function App() {
     const tasaDiaria = INTERES_ANUAL / 365;
     const A = P * Math.pow(1 + tasaDiaria, dias);
     setResultado(A.toFixed(2));
+  };
+
+  const convertirADolares = (e) => {
+    e.preventDefault();
+    let monto = parseFloat(conversionMonto);
+    if (isNaN(monto) || monto <= 0) {
+      alert("Ingresa un monto válido");
+      return;
+    }
+
+    let resultado = 0;
+    if (conversionTipo === "ARS") {
+      resultado = monto / dolarOficial.venta; // usando dólar venta actualizado
+    } else if (conversionTipo === "BTC") {
+      resultado = monto * BTC_USD;
+    }
+    setConversionResultado(resultado.toFixed(2));
   };
 
   const registrarUsuario = async (e) => {
@@ -125,11 +177,17 @@ function App() {
         <ul className="nav-links">
           <li onClick={() => setVista("inicio")}>Inicio</li>
           <li onClick={() => setVista("simulacion")}>Simulación</li>
+          <li onClick={() => setVista("conversion")}>Conversión</li>
           {!loginExitoso && <li onClick={() => setVista("registro")}>Regístrate</li>}
           {!loginExitoso && <li onClick={() => setVista("login")}>Iniciar sesión</li>}
           {loginExitoso && <li onClick={() => setVista("miCuenta")}>Mi cuenta</li>}
           {loginExitoso && (
-            <li onClick={() => { setLoginExitoso(false); setVista("inicio"); }}>
+            <li
+              onClick={() => {
+                setLoginExitoso(false);
+                setVista("inicio");
+              }}
+            >
               Cerrar sesión
             </li>
           )}
@@ -151,7 +209,6 @@ function App() {
               </div>
             </div>
 
-            {/* Preguntas Frecuentes */}
             <section className="faq-section">
               <h2>Preguntas Frecuentes</h2>
 
@@ -210,7 +267,46 @@ function App() {
             {resultado && (
               <div className="result">
                 <h3>Resultado de la inversión</h3>
-                <p>Al final del período tendrás: <strong>${resultado}</strong></p>
+                <p>
+                  Al final del período tendrás: <strong>${resultado}</strong>
+                </p>
+              </div>
+            )}
+          </>
+        )}
+
+        {vista === "conversion" && (
+          <>
+            <h1>Conversión a Dólares</h1>
+            <p>Valor dólar oficial: Compra ${dolarOficial.compra} | Venta ${dolarOficial.venta}</p>
+            <p>Última actualización: {new Date(dolarOficial.fechaActualizacion).toLocaleString()}</p>
+            <form className="form-container" onSubmit={convertirADolares}>
+              <label>
+                Monto:
+                <input
+                  type="number"
+                  value={conversionMonto}
+                  onChange={(e) => setConversionMonto(e.target.value)}
+                  required
+                />
+              </label>
+              <label>
+                Tipo:
+                <select
+                  value={conversionTipo}
+                  onChange={(e) => setConversionTipo(e.target.value)}
+                >
+                  <option value="ARS">Pesos Argentinos</option>
+                  <option value="BTC">Bitcoin</option>
+                </select>
+              </label>
+              <button type="submit">Convertir</button>
+            </form>
+            {conversionResultado && (
+              <div className="result">
+                <p>
+                  El monto convertido es: <strong>${conversionResultado} USD</strong>
+                </p>  
               </div>
             )}
           </>
@@ -220,33 +316,76 @@ function App() {
           <>
             <h1>Registro de Inversionista</h1>
             <form className="form-container" onSubmit={registrarUsuario}>
-              <label>Nombre:
-                <input type="text" value={nombre} onChange={(e) => setNombre(e.target.value)} required/>
+              <label>
+                Nombre:
+                <input
+                  type="text"
+                  value={nombre}
+                  onChange={(e) => setNombre(e.target.value)}
+                  required
+                />
               </label>
-              <label>Apellido:
-                <input type="text" value={apellido} onChange={(e) => setApellido(e.target.value)} required/>
+              <label>
+                Apellido:
+                <input
+                  type="text"
+                  value={apellido}
+                  onChange={(e) => setApellido(e.target.value)}
+                  required
+                />
               </label>
-              <label>Email:
-                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required/>
+              <label>
+                Email:
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
               </label>
-              <label>Teléfono:
-                <input type="text" value={telefono} onChange={(e) => setTelefono(e.target.value)} />
+              <label>
+                Teléfono:
+                <input
+                  type="text"
+                  value={telefono}
+                  onChange={(e) => setTelefono(e.target.value)}
+                />
               </label>
-              <label>País de residencia:
-                <input type="text" value={pais} onChange={(e) => setPais(e.target.value)} required/>
+              <label>
+                País de residencia:
+                <input
+                  type="text"
+                  value={pais}
+                  onChange={(e) => setPais(e.target.value)}
+                  required
+                />
               </label>
-              <label>Nombre de Usuario:
-                <input type="text" value={usuario} onChange={(e) => setUsuario(e.target.value)} required/>
+              <label>
+                Nombre de Usuario:
+                <input
+                  type="text"
+                  value={usuario}
+                  onChange={(e) => setUsuario(e.target.value)}
+                  required
+                />
               </label>
-              <label>Contraseña:
-                <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required/>
+              <label>
+                Contraseña:
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
               </label>
               <button type="submit">Registrarse</button>
             </form>
             {registroExitoso && (
               <div className="result">
                 <p>Inversionista registrado con éxito</p>
-                <p>Bienvenido, {nombre} {apellido}</p>
+                <p>
+                  Bienvenido, {nombre} {apellido}
+                </p>
               </div>
             )}
           </>
@@ -258,11 +397,21 @@ function App() {
             <form className="form-container" onSubmit={iniciarSesion}>
               <label>
                 Usuario:
-                <input type="text" value={loginUsuario} onChange={(e) => setLoginUsuario(e.target.value)} required/>
+                <input
+                  type="text"
+                  value={loginUsuario}
+                  onChange={(e) => setLoginUsuario(e.target.value)}
+                  required
+                />
               </label>
               <label>
                 Contraseña:
-                <input type="password" value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} required/>
+                <input
+                  type="password"
+                  value={loginPassword}
+                  onChange={(e) => setLoginPassword(e.target.value)}
+                  required
+                />
               </label>
               <button type="submit">Ingresar</button>
             </form>
@@ -273,20 +422,55 @@ function App() {
           <>
             <h1>Mi cuenta</h1>
             <form className="form-container" onSubmit={actualizarDatos}>
-              <label>Nombre:
-                <input type="text" value={usuarioData.nombre} onChange={(e) => setUsuarioData({...usuarioData, nombre: e.target.value})}/>
+              <label>
+                Nombre:
+                <input
+                  type="text"
+                  value={usuarioData.nombre}
+                  onChange={(e) =>
+                    setUsuarioData({ ...usuarioData, nombre: e.target.value })
+                  }
+                />
               </label>
-              <label>Apellido:
-                <input type="text" value={usuarioData.apellido} onChange={(e) => setUsuarioData({...usuarioData, apellido: e.target.value})}/>
+              <label>
+                Apellido:
+                <input
+                  type="text"
+                  value={usuarioData.apellido}
+                  onChange={(e) =>
+                    setUsuarioData({ ...usuarioData, apellido: e.target.value })
+                  }
+                />
               </label>
-              <label>Email:
-                <input type="email" value={usuarioData.email} onChange={(e) => setUsuarioData({...usuarioData, email: e.target.value})}/>
+              <label>
+                Email:
+                <input
+                  type="email"
+                  value={usuarioData.email}
+                  onChange={(e) =>
+                    setUsuarioData({ ...usuarioData, email: e.target.value })
+                  }
+                />
               </label>
-              <label>Teléfono:
-                <input type="text" value={usuarioData.telefono} onChange={(e) => setUsuarioData({...usuarioData, telefono: e.target.value})}/>
+              <label>
+                Teléfono:
+                <input
+                  type="text"
+                  value={usuarioData.telefono}
+                  onChange={(e) =>
+                    setUsuarioData({ ...usuarioData, telefono: e.target.value })
+                  }
+                />
               </label>
-              <label>País de residencia:
-                <input type="text" value={usuarioData.pais} onChange={(e) => setUsuarioData({...usuarioData, pais: e.target.value})}/>
+              <label>
+                País de residencia:
+                <input
+                  type="text"
+                  value={usuarioData.pais}
+                  onChange={(e) =>
+                    setUsuarioData({ ...usuarioData, pais: e.target.value })
+                  }
+                />
               </label>
               <button type="submit">Actualizar datos</button>
             </form>
