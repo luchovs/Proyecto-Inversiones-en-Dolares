@@ -4,17 +4,12 @@ from flask_cors import CORS
 import os
 from dotenv import load_dotenv
 
-# Cargar variables del archivo .env
 load_dotenv()
-import os
-print("DEBUG ENV:", os.getenv("DB_HOST"), os.getenv("DB_USER"), os.getenv("DB_NAME"))
-
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
 app.secret_key = os.getenv("SECRET_KEY", "clave_por_defecto")
 
-# Configuración de la base de datos desde .env
 db_config = {
     "host": os.getenv("DB_HOST"),
     "user": os.getenv("DB_USER"),
@@ -27,6 +22,7 @@ db_config = {
 def home():
     return "Servidor Flask funcionando"
 
+# 🔹 Registro normal (usuarios o admins)
 @app.route("/registro", methods=["POST"])
 def registro():
     data = request.get_json()
@@ -35,8 +31,8 @@ def registro():
         cursor = conn.cursor()
         sql = """
         INSERT INTO Inversionistas
-        (Nombre, Apellido, Email, Telefono, Pais_Residencia, Usuario, Password)
-        VALUES (%s, %s, %s, %s, %s, %s, %s)
+        (Nombre, Apellido, Email, Telefono, Pais_Residencia, Usuario, Password, Rol)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, 'usuario')
         """
         cursor.execute(sql, (
             data.get("nombre"),
@@ -54,11 +50,14 @@ def registro():
     except mysql.connector.Error as err:
         return jsonify({"error": str(err)}), 500
 
+
+# 🔹 Login: ahora devuelve también el rol
 @app.route("/login", methods=["POST"])
 def login():
     data = request.get_json()
     usuario = data.get("usuario")
     password = data.get("password")
+
     try:
         conn = mysql.connector.connect(**db_config)
         cursor = conn.cursor(dictionary=True)
@@ -76,7 +75,8 @@ def login():
                 "email": user["Email"],
                 "telefono": user["Telefono"],
                 "pais": user["Pais_Residencia"],
-                "usuario": user["Usuario"]
+                "usuario": user["Usuario"],
+                "rol": user["Rol"]  # 🔹 Nuevo campo
             }
             return jsonify({"message": "Login exitoso", "usuario": user_data})
         else:
@@ -84,18 +84,21 @@ def login():
     except mysql.connector.Error as err:
         return jsonify({"error": str(err)}), 500
 
-@app.route("/inversionistas", methods=["GET"])
+
+# 🔹 Nuevo endpoint solo para admins
+@app.route("/usuarios", methods=["GET"])
 def obtener_inversionistas():
     try:
         conn = mysql.connector.connect(**db_config)
         cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM Inversionistas")
+        cursor.execute("SELECT Id_Inversionista, Nombre, Apellido, Email, Telefono, Pais_Residencia, Usuario, Rol FROM Inversionistas")
         resultados = cursor.fetchall()
         cursor.close()
         conn.close()
         return jsonify(resultados)
     except mysql.connector.Error as err:
         return jsonify({"error": str(err)}), 500
+
 
 @app.route("/editar_usuario", methods=["PUT"])
 def editar_usuario():
@@ -122,14 +125,6 @@ def editar_usuario():
         return jsonify({"message": "Datos actualizados correctamente"})
     except mysql.connector.Error as err:
         return jsonify({"error": str(err)}), 500
-
-@app.route("/test_env")
-def test_env():
-    return jsonify({
-        "host": os.getenv("DB_HOST"),
-        "user": os.getenv("DB_USER"),
-        "database": os.getenv("DB_NAME")
-    })
 
 
 if __name__ == "__main__":
