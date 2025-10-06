@@ -88,7 +88,7 @@ function App() {
       if (response.ok) {
         setLoginExitoso(true);
         setUsuarioData(data.usuario);
-        setVista("inicio");   // 👉 Redirección automática al inicio
+        setVista("inicio");
       } else {
         alert("Credenciales inválidas: " + data.error);
       }
@@ -138,17 +138,49 @@ function App() {
 
       <main className="main-content">
         {vista === "inicio" && (
-          <div className="inicio-fondo">
-            <div className="inicio-cuadro">
-              <h1>Invertí tus ahorros en dólares</h1>
-              <button
-                className="invertir-boton"
-                onClick={() => setVista("registro")}
-              >
-                Comenzar a invertir
-              </button>
+          <>
+            <div className="inicio-fondo">
+              <div className="inicio-cuadro">
+                <h1>Invertí tus ahorros en dólares</h1>
+                <button
+                  className="invertir-boton"
+                  onClick={() => setVista("registro")}
+                >
+                  Comenzar a invertir
+                </button>
+              </div>
             </div>
-          </div>
+
+            {/* Preguntas Frecuentes */}
+            <section className="faq-section">
+              <h2>Preguntas Frecuentes</h2>
+
+              <div className="faq-item">
+                <h3>¿Cuál es el monto mínimo para invertir?</h3>
+                <p>El monto mínimo es de 100 USD para comenzar una inversión.</p>
+              </div>
+
+              <div className="faq-item">
+                <h3>¿En cuánto tiempo puedo retirar mi dinero?</h3>
+                <p>Podés elegir plazos desde 30 hasta 365 días según tu conveniencia.</p>
+              </div>
+
+              <div className="faq-item">
+                <h3>¿Qué tasa de interés obtengo?</h3>
+                <p>La tasa anual es del 5%, y aumenta proporcionalmente según el tiempo del depósito.</p>
+              </div>
+
+              <div className="faq-item">
+                <h3>¿Necesito tener una cuenta bancaria en dólares?</h3>
+                <p>Sí, las inversiones se realizan en cuentas en dólares para garantizar la rentabilidad en esa moneda.</p>
+              </div>
+
+              <div className="faq-item">
+                <h3>¿Puedo simular mi inversión antes de invertir?</h3>
+                <p>Sí, en la sección “Simulación” podés calcular cuánto ganarías según el monto y plazo.</p>
+              </div>
+            </section>
+          </>
         )}
 
         {vista === "simulacion" && (
