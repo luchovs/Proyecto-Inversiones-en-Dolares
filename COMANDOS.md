@@ -16,3 +16,17 @@ npm run dev
 # IP
 
 10.9.120.5:8080
+
+# Test Diseño de Software
+
+Comandos:
+
+pip install Flask pytest pytest-cov
+pip install requests faker
+
+pytest-cov: para generar reportes de cobertura.
+faker: para generar datos de prueba.
+requests: útil para pruebas integradas con servidores reales.
+
+
+
