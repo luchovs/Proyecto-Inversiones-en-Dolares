@@ -48,7 +48,7 @@ def registro():
         conn.close()
         return jsonify({"message": "Usuario registrado con éxito"})
     except mysql.connector.Error as err:
-        return jsonify({"error": str(err)}), 500
+        return jsonify({"error": str(err)}), 400
 
 
 # 🔹 Login: ahora devuelve también el rol
@@ -67,7 +67,7 @@ def login():
         conn.close()
 
         if not user:
-            return jsonify({"error": "Usuario no encontrado"}), 404
+            return jsonify({"error": "Usuario no encontrado"}), 400
         if user["Password"] == password:
             user_data = {
                 "nombre": user["Nombre"],
@@ -82,7 +82,7 @@ def login():
         else:
             return jsonify({"error": "Contraseña incorrecta"}), 401
     except mysql.connector.Error as err:
-        return jsonify({"error": str(err)}), 500
+        return jsonify({"error": str(err)}), 404
 
 
 # 🔹 Nuevo endpoint solo para admins
@@ -124,7 +124,7 @@ def editar_usuario():
         conn.close()
         return jsonify({"message": "Datos actualizados correctamente"})
     except mysql.connector.Error as err:
-        return jsonify({"error": str(err)}), 500
+        return jsonify({"error": str(err)}), 200
 
 
 if __name__ == "__main__":
