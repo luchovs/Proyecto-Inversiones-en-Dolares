@@ -185,3 +185,47 @@ button:hover {
   margin: 0;
   line-height: 1.5;
 }
+
+.convertir-a-dolares {
+  margin-top: 20px;
+  padding: 20px;
+  background-color: #f0f2f5;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.convertir-a-dolares p {
+  font-size: 16px;
+  color: #333;
+  margin-top: 5px;
+}
+
+.convertir-a-dolares button {
+  width: auto;
+  padding: 10px 20px;
+  background-color: #070e46;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+.convertir-a-dolares button:hover {
+  background-color: #ffd700;
+}
+
+.simulacion-fondo {
+  background-image: url("/conversion.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  padding: 40px;
+  min-height: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  margin-top: 60px;
+}

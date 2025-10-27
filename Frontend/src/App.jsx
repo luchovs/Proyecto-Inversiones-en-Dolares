@@ -41,10 +41,10 @@ function App() {
   const [dolarOficial, setDolarOficial] = useState({
     compra: 1400,
     venta: 1450,
-    fechaActualizacion: "2025-10-06T09:54:00.000Z"
+    fechaActualizacion: "2025-10-27T13:54:00.000Z"
   });
 
-  const BTC_USD = 124623.3;
+  const BTC_USD = 115682.60;
 
   // --- Traer cotización actual de DolarApi ---
   useEffect(() => {
@@ -68,22 +68,68 @@ function App() {
     return () => clearInterval(interval); // limpiar intervalo
   }, []);
 
-  const calcularInversion = (e) => {
-    e.preventDefault();
-    const P = parseFloat(monto);
-    const dias = parseInt(tiempo);
-    if (isNaN(P) || P < 100 || P > 100000) {
-      alert("El monto debe estar entre 100 y 100000 dólares.");
-      return;
-    }
-    if (isNaN(dias) || dias < 1 || dias > 365) {
-      alert("El tiempo debe estar entre 1 y 365 días.");
-      return;
-    }
-    const tasaDiaria = INTERES_ANUAL / 365;
-    const A = P * Math.pow(1 + tasaDiaria, dias);
-    setResultado(A.toFixed(2));
-  };
+  const registrarInversion = async () => {
+  try {
+    const response = await fetch("http://127.0.0.1:8080/registrar_inversion", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id_inversionista: usuarioData.id_inversionista, // del login
+        id_tipo: 1,             // ejemplo: tipo 1
+        monto_inicial: parseFloat(monto),
+        fecha_inicio: new Date().toISOString().slice(0, 10), // YYYY-MM-DD
+        fecha_fin: null,        // opcional
+        estado: "Activa"
+      })
+    });
+
+    const data = await response.json();
+    if (response.ok) alert("Inversión registrada con éxito");
+    else alert("Error: " + data.error);
+  } catch (error) {
+    alert("Error de red: " + error);
+  }
+};  
+
+const calcularInversion = async (e) => {
+  e.preventDefault();
+  const P = parseFloat(monto);
+  const dias = parseInt(tiempo);
+
+  if (isNaN(P) || P < 100 || P > 100000) {
+    alert("El monto debe estar entre 100 y 100000 dólares.");
+    return;
+  }
+  if (isNaN(dias) || dias < 1 || dias > 365) {
+    alert("El tiempo debe estar entre 1 y 365 días.");
+    return;
+  }
+
+  const tasaDiaria = INTERES_ANUAL / 365;
+  const A = P * Math.pow(1 + tasaDiaria, dias);
+  setResultado(A.toFixed(2));
+
+  // 🔹 Registrar la inversión en MySQL
+  try {
+    const response = await fetch("http://127.0.0.1:8080/registrar_inversion", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id_inversionista: usuarioData.id_inversionista, // del usuario logueado
+        id_tipo: 1, // ejemplo, podés hacer un selector para tipos de inversión
+        monto_inicial: P,
+        fecha_inicio: new Date().toISOString().slice(0, 10), // YYYY-MM-DD
+        fecha_fin: null, // opcional
+        estado: "Activa"
+      })
+    });
+
+    const data = await response.json();
+    if (!response.ok) alert("Error al registrar inversión: " + data.error);
+  } catch (error) {
+    alert("Error de red al registrar inversión: " + error);
+  }
+};
 
   const convertirADolares = (e) => {
     e.preventDefault();
@@ -165,6 +211,7 @@ function App() {
     }
   };
 
+
   return (
     <div className="app-container">
       <nav className="navbar">
@@ -199,12 +246,12 @@ function App() {
           <>
             <div className="inicio-fondo">
               <div className="inicio-cuadro">
-                <h1>Invertí tus ahorros en dólares</h1>
+                <h1>Simulá la inversión de tus ahorros en dólares</h1>
                 <button
                   className="invertir-boton"
-                  onClick={() => setVista("registro")}
+                  onClick={() => setVista("simulacion")}
                 >
-                  Comenzar a invertir
+                  Comenzar a simular
                 </button>
               </div>
             </div>
@@ -272,14 +319,26 @@ function App() {
                 </p>
               </div>
             )}
+            <div className="simulacion-fondo"></div>
+            <div className="convertir-a-dolares">
+              <p>¿Tenés pesos argentinos o bitcoin y querés saber cuántos dólares podés invertir?</p>
+              <button
+                className="invertir-boton"
+                onClick={() => setVista("conversion")}
+              >
+                ¡Hace la conversión acá!
+              </button>
+            </div>
           </>
         )}
+
 
         {vista === "conversion" && (
           <>
             <h1>Conversión a Dólares</h1>
-            <p>Valor dólar oficial: Compra ${dolarOficial.compra} | Venta ${dolarOficial.venta}</p>
-            <p>Última actualización: {new Date(dolarOficial.fechaActualizacion).toLocaleString()}</p>
+            <p>Valor dólar oficial: Compra $1400 | Venta $1450</p>
+            <p>Última actualización: 27/10/2025 13:54</p> {/* fecha manual */}
+            
             <form className="form-container" onSubmit={convertirADolares}>
               <label>
                 Monto:
@@ -302,6 +361,7 @@ function App() {
               </label>
               <button type="submit">Convertir</button>
             </form>
+
             {conversionResultado && (
               <div className="result">
                 <p>
@@ -311,6 +371,7 @@ function App() {
             )}
           </>
         )}
+
 
         {vista === "registro" && !loginExitoso && (
           <>
