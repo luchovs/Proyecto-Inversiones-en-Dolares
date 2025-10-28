@@ -125,6 +125,51 @@ def editar_usuario():
         return jsonify({"message": "Datos actualizados correctamente"})
     except mysql.connector.Error as err:
         return jsonify({"error": str(err)}), 200
+    
+# 🔹 Actualizar usuario por ID (solo para admin)
+@app.route("/usuarios/<int:id>", methods=["PUT"])
+def actualizar_usuario(id):
+    data = request.get_json()
+    try:
+        conn = mysql.connector.connect(**db_config)
+        cursor = conn.cursor()
+        sql = """
+        UPDATE Inversionistas
+        SET Nombre=%s, Apellido=%s, Email=%s, Telefono=%s, Pais_Residencia=%s, Usuario=%s, Rol=%s
+        WHERE Id_Inversionista=%s
+        """
+        cursor.execute(sql, (
+            data.get("Nombre"),
+            data.get("Apellido"),
+            data.get("Email"),
+            data.get("Telefono"),
+            data.get("Pais_Residencia"),
+            data.get("Usuario"),
+            data.get("Rol"),
+            id
+        ))
+        conn.commit()
+        cursor.close()
+        conn.close()
+        return jsonify({"message": "Usuario actualizado correctamente"})
+    except mysql.connector.Error as err:
+        return jsonify({"error": str(err)}), 400
+
+
+# 🔹 Eliminar usuario (solo para admin)
+@app.route("/usuarios/<int:id>", methods=["DELETE"])
+def eliminar_usuario(id):
+    try:
+        conn = mysql.connector.connect(**db_config)
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM Inversionistas WHERE Id_Inversionista = %s", (id,))
+        conn.commit()
+        cursor.close()
+        conn.close()
+        return jsonify({"message": "Usuario eliminado correctamente"})
+    except mysql.connector.Error as err:
+        return jsonify({"error": str(err)}), 400
+
 
 
 if __name__ == "__main__":

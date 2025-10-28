@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "./App.css";
+import Usuarios from "./Usuarios";
+
 
 function App() {
   const [monto, setMonto] = useState("");
@@ -228,6 +230,9 @@ const calcularInversion = async (e) => {
           {!loginExitoso && <li onClick={() => setVista("registro")}>Regístrate</li>}
           {!loginExitoso && <li onClick={() => setVista("login")}>Iniciar sesión</li>}
           {loginExitoso && <li onClick={() => setVista("miCuenta")}>Mi cuenta</li>}
+          {loginExitoso && usuarioData.rol === "admin" && (
+           <li onClick={() => setVista("usuarios")}>Usuarios</li>
+          )}
           {loginExitoso && (
             <li
               onClick={() => {
@@ -242,6 +247,10 @@ const calcularInversion = async (e) => {
       </nav>
 
       <main className="main-content">
+        {vista === "usuarios" && loginExitoso && (
+  <Usuarios usuarioData={usuarioData} />
+)}
+        
         {vista === "inicio" && (
           <>
             <div className="inicio-fondo">
