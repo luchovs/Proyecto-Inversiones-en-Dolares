@@ -28,5 +28,18 @@ pytest-cov: para generar reportes de cobertura.
 faker: para generar datos de prueba.
 requests: útil para pruebas integradas con servidores reales.
 
+# Test Frontend
 
+npm install --save-dev jest babel-jest @babel/preset-env @babel/preset-react
 
+npm install --save-dev jsdom
+
+npm install --save-dev @testing-library/react @testing-library/jest-dom
+
+npm install --save-dev ts-jest @types/jest
+
+npm run test
+
+npm run test:watch
+
+npm run test:coverage
