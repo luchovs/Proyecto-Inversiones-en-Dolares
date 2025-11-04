@@ -229,3 +229,59 @@ button:hover {
   justify-content: flex-start;
   margin-top: 60px;
 }
+
+/* --- Estilos para la sección Mi Cuenta y las pestañas (Tabs) --- */
+.mi-cuenta-tabs {
+  display: flex;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #ccc;
+}
+
+.mi-cuenta-tabs button {
+  padding: 10px 15px;
+  border: none;
+  background-color: transparent;
+  cursor: pointer;
+  margin-right: 10px;
+  font-size: 16px;
+  font-weight: 500;
+  color: #555;
+  transition: color 0.3s, border-bottom 0.3s;
+}
+
+.mi-cuenta-tabs .tab-activo {
+  color: #007bff;
+  border-bottom: 3px solid #007bff;
+}
+
+.inversiones-tabla {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.inversiones-tabla th, .inversiones-tabla td {
+  border: 1px solid #ddd;
+  padding: 12px;
+  text-align: left;
+}
+
+.inversiones-tabla th {
+  background-color: #f4f4f4;
+  font-weight: bold;
+}
+
+.inversiones-tabla tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+.estado-activo {
+    color: #28a745;
+    font-weight: bold;
+}
+
+.estado-finalizada {
+    color: #ffc107;
+    font-weight: bold;
+}

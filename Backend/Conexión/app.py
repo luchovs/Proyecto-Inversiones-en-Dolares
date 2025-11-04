@@ -3,7 +3,7 @@ import mysql.connector
 from flask_cors import CORS
 import os
 from dotenv import load_dotenv
-from datetime import datetime, timedelta # 🌟 NUEVA IMPORTACIÓN
+from datetime import datetime, timedelta
 
 load_dotenv()
 
@@ -87,46 +87,42 @@ def login():
         return jsonify({"error": str(err)}), 404
 
 # ----------------------------------------------------
-# 🌟 ENDPOINT ACTUALIZADO PARA CALCULAR FECHA_FIN EN PYTHON 🌟
+# ENDPOINT PARA REGISTRAR INVERSION (Eliminado "Estado")
 # ----------------------------------------------------
 @app.route("/registrar_inversion", methods=["POST"])
 def registrar_inversion():
     data = request.get_json()
     
-    # 🌟 Lógica de Cálculo de Fecha en el Backend 🌟
     fecha_inicio_str = data.get("fecha_inicio")
-    dias = data.get("dias") # El frontend envía el número de días aquí
+    dias = data.get("dias") 
     
     try:
-        # Convertir la fecha de inicio de string a objeto date
         fecha_inicio_dt = datetime.strptime(fecha_inicio_str, '%Y-%m-%d').date()
         
-        # Calcular la fecha de finalización
         if dias is not None and dias > 0:
             fecha_fin_dt = fecha_inicio_dt + timedelta(days=dias)
             fecha_fin_sql = fecha_fin_dt.strftime('%Y-%m-%d')
         else:
-            fecha_fin_sql = None # Si no hay días, se mantiene nulo
+            fecha_fin_sql = None
         
         conn = mysql.connector.connect(**db_config)
         cursor = conn.cursor()
         sql = """
+        -- 🛑 ¡Estado eliminado!
         INSERT INTO Inversiones
-        (Id_Inversionista, Id_Tipo, Monto_Inicial, Fecha_Inicio, Fecha_Fin, Estado)
-        VALUES (%s, %s, %s, %s, %s, %s)
+        (Id_Inversionista, Id_Tipo, Monto_Inicial, Fecha_Inicio, Fecha_Fin)
+        VALUES (%s, %s, %s, %s, %s)
         """
         cursor.execute(sql, (
             data.get("id_inversionista"),
             data.get("id_tipo"),
             data.get("monto_inicial"),
-            fecha_inicio_str,  # Usamos la fecha de inicio enviada
-            fecha_fin_sql,     # 🔑 FECHA DE FIN CALCULADA EN PYTHON
-            data.get("estado"),
+            fecha_inicio_str, 
+            fecha_fin_sql,     
         ))
         conn.commit()
         cursor.close()
         conn.close()
-        # Devolvemos la fecha final calculada para el frontend
         return jsonify({"message": "Inversión registrada con éxito", "fecha_fin": fecha_fin_sql}), 201
     
     except ValueError as ve:
@@ -134,6 +130,40 @@ def registrar_inversion():
     except mysql.connector.Error as err:
         print(f"Error de MySQL: {err}")
         return jsonify({"error": str(err)}), 400
+
+
+# ----------------------------------------------------
+# ENDPOINT: Obtener inversiones de un usuario (Eliminado "Estado")
+# ----------------------------------------------------
+@app.route("/inversiones/<int:id_inversionista>", methods=["GET"])
+def obtener_inversiones(id_inversionista):
+    try:
+        conn = mysql.connector.connect(**db_config)
+        cursor = conn.cursor(dictionary=True)
+        
+        sql = """
+        -- 🛑 Columna Id_Inversiones corregida y Estado eliminado
+        SELECT Id_Inversiones, Id_Tipo, Monto_Inicial, Fecha_Inicio, Fecha_Fin
+        FROM Inversiones
+        WHERE Id_Inversionista = %s
+        ORDER BY Fecha_Inicio DESC
+        """
+        cursor.execute(sql, (id_inversionista,))
+        inversiones = cursor.fetchall()
+        cursor.close()
+        conn.close()
+
+        # Formatear las fechas a string YYYY-MM-DD para el frontend
+        for inv in inversiones:
+            if 'Fecha_Inicio' in inv and inv['Fecha_Inicio']:
+                inv['Fecha_Inicio'] = inv['Fecha_Inicio'].strftime('%Y-%m-%d')
+            if 'Fecha_Fin' in inv and inv['Fecha_Fin']:
+                inv['Fecha_Fin'] = inv['Fecha_Fin'].strftime('%Y-%m-%d')
+        
+        return jsonify(inversiones)
+    except mysql.connector.Error as err:
+        print(f"Error de MySQL al obtener inversiones: {err}")
+        return jsonify({"error": "Error al consultar las inversiones."}), 500
 
 
 # 🔹 Nuevo endpoint solo para admins

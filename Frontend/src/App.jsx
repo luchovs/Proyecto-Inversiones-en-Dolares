@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import "./App.css";
-import Usuarios from "./Usuarios";
+import Usuarios from "./Usuarios"; // 👈 Asegúrate de que este archivo exista
 
 function App() {
   const [monto, setMonto] = useState("");
@@ -33,6 +33,10 @@ function App() {
     rol: "",
   });
 
+  // ESTADOS PARA "MI CUENTA"
+  const [vistaMiCuenta, setVistaMiCuenta] = useState("datos"); // 'datos' o 'historial'
+  const [historialInversiones, setHistorialInversiones] = useState([]);
+
   const INTERES_ANUAL = 0.05;
 
   // --- Conversión a dólares ---
@@ -40,7 +44,7 @@ function App() {
   const [conversionTipo, setConversionTipo] = useState("ARS"); // ARS o BTC
   const [conversionResultado, setConversionResultado] = useState(null);
 
-  // Estado para la cotización del dólar oficial
+  // Estado para la cotización del dólar oficial (Valores de ejemplo)
   const [dolarOficial, setDolarOficial] = useState({
     compra: 1400,
     venta: 1450,
@@ -105,8 +109,7 @@ function App() {
               id_tipo: 1,
               monto_inicial: P,
               fecha_inicio: fechaInicioSQL,
-              dias: dias, // 🔑 ENVIAMOS SOLO LOS DÍAS (el backend calcula la fecha_fin)
-              estado: "Activa",
+              dias: dias, // ENVIAMOS SOLO LOS DÍAS
             }),
           }
         );
@@ -114,18 +117,18 @@ function App() {
         const data = await response.json();
         if (response.ok) {
           console.log(
-            "Inversión registrada con éxito. Fecha Fin (Backend):",
+            "Simulación registrada con éxito. Fecha Fin (Backend):",
             data.fecha_fin
           );
-          alert(`Inversión registrada con éxito. Vence el ${data.fecha_fin}`);
+          alert(`Simulación registrada con éxito. Vence el ${data.fecha_fin}`);
         } else {
-          alert("Error al registrar inversión: " + data.error);
+          alert("Error al registrar simulación: " + data.error);
         }
       } catch (error) {
-        alert("Error de red al registrar inversión: " + error);
+        alert("Error de red al registrar simulación: " + error);
       }
     } else {
-      alert("Simulación exitosa. Inicia sesión para registrar la inversión.");
+      alert("Simulación exitosa. Inicia sesión para registrar la simulación.");
     }
   };
 
@@ -212,6 +215,30 @@ function App() {
     }
   };
 
+  // FUNCIÓN: Obtener historial de inversiones
+  const obtenerHistorialInversiones = async () => {
+    if (!usuarioData.id_inversionista) return;
+
+    try {
+      const url = `http://127.0.0.1:8080/inversiones/${usuarioData.id_inversionista}`;
+      const response = await fetch(url);
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setHistorialInversiones(data);
+      } else {
+        console.error("Error al cargar historial:", data.error);
+        alert("Error al cargar historial: " + data.error);
+        setHistorialInversiones([]);
+      }
+    } catch (error) {
+      console.error("Error de red al cargar historial:", error);
+      alert("Error de red al cargar historial: " + error);
+      setHistorialInversiones([]);
+    }
+  };
+
   return (
     <div className="app-container">
       <nav className="navbar">
@@ -241,7 +268,17 @@ function App() {
             <li
               onClick={() => {
                 setLoginExitoso(false);
-                setUsuarioData({}); // Limpiar datos del usuario
+                setUsuarioData({
+                  // Limpiar datos del usuario
+                  id_inversionista: null,
+                  nombre: "",
+                  apellido: "",
+                  email: "",
+                  telefono: "",
+                  pais: "",
+                  usuario: "",
+                  rol: "",
+                });
                 setVista("inicio");
               }}
             >
@@ -252,9 +289,10 @@ function App() {
       </nav>
 
       <main className="main-content">
-        {vista === "usuarios" && loginExitoso && (
-          <Usuarios usuarioData={usuarioData} />
-        )}
+        {/* 🌟 VISTA DE ADMINISTRADOR RESTAURADA 🌟 */}
+        {vista === "usuarios" &&
+          loginExitoso &&
+          usuarioData.rol === "admin" && <Usuarios usuarioData={usuarioData} />}
 
         {vista === "inicio" && (
           <>
@@ -320,12 +358,13 @@ function App() {
             <h1>Simulador de Inversiones en Dólares</h1>
             {loginExitoso ? (
               <p>
-                Estás logueado como "{usuarioData.usuario}". ¡Tu simulación se
-                guardará como una inversión!
+                Estás logueado como **{usuarioData.usuario}**. ¡Tu simulación se
+                guardará en tu historial!
               </p>
             ) : (
               <p>
-                Regístrate o Inicia Sesión para que tu simulación se guarde.
+                Regístrate o Inicia Sesión para que tu simulación se guarde en
+                tu historial.
               </p>
             )}
 
@@ -352,7 +391,7 @@ function App() {
             </form>
             {resultado && (
               <div className="result">
-                <h3>Resultado de la inversión</h3>
+                <h3>Resultado de la simulación</h3>
                 <p>
                   Al final del período tendrás: <strong>${resultado}</strong>
                 </p>
@@ -377,8 +416,16 @@ function App() {
         {vista === "conversion" && (
           <>
             <h1>Conversión a Dólares</h1>
-            <p>Valor dólar oficial: Compra $1400 | Venta $1450</p>
-            <p>Última actualización: 27/10/2025 13:54</p> {/* fecha manual */}
+            <p>
+              Valor dólar oficial: Compra ${dolarOficial.compra} | Venta $
+              {dolarOficial.venta}
+            </p>
+            <p>
+              Última actualización:{" "}
+              {new Date(dolarOficial.fechaActualizacion).toLocaleDateString()}{" "}
+              {new Date(dolarOficial.fechaActualizacion).toLocaleTimeString()}
+            </p>
+
             <form className="form-container" onSubmit={convertirADolares}>
               <label>
                 Monto:
@@ -401,6 +448,7 @@ function App() {
               </label>
               <button type="submit">Convertir</button>
             </form>
+
             {conversionResultado && (
               <div className="result">
                 <p>
@@ -518,62 +566,132 @@ function App() {
           </>
         )}
 
+        {/* VISTA "MI CUENTA" CON PESTAÑAS */}
         {vista === "miCuenta" && loginExitoso && (
           <>
-            <h1>Mi cuenta</h1>
-            <form className="form-container" onSubmit={actualizarDatos}>
-              <label>
-                Nombre:
-                <input
-                  type="text"
-                  value={usuarioData.nombre}
-                  onChange={(e) =>
-                    setUsuarioData({ ...usuarioData, nombre: e.target.value })
-                  }
-                />
-              </label>
-              <label>
-                Apellido:
-                <input
-                  type="text"
-                  value={usuarioData.apellido}
-                  onChange={(e) =>
-                    setUsuarioData({ ...usuarioData, apellido: e.target.value })
-                  }
-                />
-              </label>
-              <label>
-                Email:
-                <input
-                  type="email"
-                  value={usuarioData.email}
-                  onChange={(e) =>
-                    setUsuarioData({ ...usuarioData, email: e.target.value })
-                  }
-                />
-              </label>
-              <label>
-                Teléfono:
-                <input
-                  type="text"
-                  value={usuarioData.telefono}
-                  onChange={(e) =>
-                    setUsuarioData({ ...usuarioData, telefono: e.target.value })
-                  }
-                />
-              </label>
-              <label>
-                País de residencia:
-                <input
-                  type="text"
-                  value={usuarioData.pais}
-                  onChange={(e) =>
-                    setUsuarioData({ ...usuarioData, pais: e.target.value })
-                  }
-                />
-              </label>
-              <button type="submit">Actualizar datos</button>
-            </form>
+            <h1>Mi cuenta ({usuarioData.usuario})</h1>
+
+            {/* Controles de Navegación (Tabs) */}
+            <div className="mi-cuenta-tabs">
+              <button
+                className={vistaMiCuenta === "datos" ? "tab-activo" : ""}
+                onClick={() => setVistaMiCuenta("datos")}
+              >
+                Modificar datos
+              </button>
+              <button
+                className={vistaMiCuenta === "historial" ? "tab-activo" : ""}
+                onClick={() => {
+                  setVistaMiCuenta("historial");
+                  obtenerHistorialInversiones(); // Cargar historial al hacer clic
+                }}
+              >
+                Historial de Simulaciones
+              </button>
+            </div>
+
+            {/* Contenido de Modificar Datos */}
+            {vistaMiCuenta === "datos" && (
+              <form className="form-container" onSubmit={actualizarDatos}>
+                <label>
+                  Nombre:
+                  <input
+                    type="text"
+                    value={usuarioData.nombre}
+                    onChange={(e) =>
+                      setUsuarioData({ ...usuarioData, nombre: e.target.value })
+                    }
+                  />
+                </label>
+                <label>
+                  Apellido:
+                  <input
+                    type="text"
+                    value={usuarioData.apellido}
+                    onChange={(e) =>
+                      setUsuarioData({
+                        ...usuarioData,
+                        apellido: e.target.value,
+                      })
+                    }
+                  />
+                </label>
+                <label>
+                  Email:
+                  <input
+                    type="email"
+                    value={usuarioData.email}
+                    onChange={(e) =>
+                      setUsuarioData({ ...usuarioData, email: e.target.value })
+                    }
+                  />
+                </label>
+                <label>
+                  Teléfono:
+                  <input
+                    type="text"
+                    value={usuarioData.telefono}
+                    onChange={(e) =>
+                      setUsuarioData({
+                        ...usuarioData,
+                        telefono: e.target.value,
+                      })
+                    }
+                  />
+                </label>
+                <label>
+                  País de residencia:
+                  <input
+                    type="text"
+                    value={usuarioData.pais}
+                    onChange={(e) =>
+                      setUsuarioData({ ...usuarioData, pais: e.target.value })
+                    }
+                  />
+                </label>
+                <button type="submit">Actualizar datos</button>
+              </form>
+            )}
+
+            {/* Contenido de Historial de Simulaciones */}
+            {vistaMiCuenta === "historial" && (
+              <div className="historial-container">
+                <h2>Mis Simulaciones</h2>
+                {historialInversiones.length === 0 ? (
+                  <p>
+                    Aún no tienes simulaciones registradas. ¡Realiza una
+                    simulación para ver tu historial!
+                  </p>
+                ) : (
+                  <table className="inversiones-tabla">
+                    <thead>
+                      <tr>
+                        <th>ID</th>
+                        <th>Tipo</th>
+                        <th>Monto Inicial</th>
+                        <th>Fecha Inicio</th>
+                        <th>Fecha Fin</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {historialInversiones.map((inv) => (
+                        <tr key={inv.Id_Inversiones}>
+                          <td>{inv.Id_Inversiones}</td>
+                          <td>
+                            {inv.Id_Tipo === 1
+                              ? "Simulación Web"
+                              : "ID " + inv.Id_Tipo}
+                          </td>
+                          <td>${parseFloat(inv.Monto_Inicial).toFixed(2)}</td>
+                          <td>{inv.Fecha_Inicio}</td>
+                          <td>{inv.Fecha_Fin || "N/A"}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            )}
           </>
         )}
       </main>
