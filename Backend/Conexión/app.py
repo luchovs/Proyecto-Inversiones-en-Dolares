@@ -3,6 +3,7 @@ import mysql.connector
 from flask_cors import CORS
 import os
 from dotenv import load_dotenv
+from datetime import datetime, timedelta # 🌟 NUEVA IMPORTACIÓN
 
 load_dotenv()
 
@@ -51,7 +52,7 @@ def registro():
         return jsonify({"error": str(err)}), 400
 
 
-# 🔹 Login: ahora devuelve también el rol
+# 🔹 Login: devuelve Id_Inversionista y rol
 @app.route("/login", methods=["POST"])
 def login():
     data = request.get_json()
@@ -70,19 +71,69 @@ def login():
             return jsonify({"error": "Usuario no encontrado"}), 400
         if user["Password"] == password:
             user_data = {
+                "id_inversionista": user["Id_Inversionista"], 
                 "nombre": user["Nombre"],
                 "apellido": user["Apellido"],
                 "email": user["Email"],
                 "telefono": user["Telefono"],
                 "pais": user["Pais_Residencia"],
                 "usuario": user["Usuario"],
-                "rol": user["Rol"]  # 🔹 Nuevo campo
+                "rol": user.get("Rol", "usuario")
             }
             return jsonify({"message": "Login exitoso", "usuario": user_data})
         else:
             return jsonify({"error": "Contraseña incorrecta"}), 401
     except mysql.connector.Error as err:
         return jsonify({"error": str(err)}), 404
+
+# ----------------------------------------------------
+# 🌟 ENDPOINT ACTUALIZADO PARA CALCULAR FECHA_FIN EN PYTHON 🌟
+# ----------------------------------------------------
+@app.route("/registrar_inversion", methods=["POST"])
+def registrar_inversion():
+    data = request.get_json()
+    
+    # 🌟 Lógica de Cálculo de Fecha en el Backend 🌟
+    fecha_inicio_str = data.get("fecha_inicio")
+    dias = data.get("dias") # El frontend envía el número de días aquí
+    
+    try:
+        # Convertir la fecha de inicio de string a objeto date
+        fecha_inicio_dt = datetime.strptime(fecha_inicio_str, '%Y-%m-%d').date()
+        
+        # Calcular la fecha de finalización
+        if dias is not None and dias > 0:
+            fecha_fin_dt = fecha_inicio_dt + timedelta(days=dias)
+            fecha_fin_sql = fecha_fin_dt.strftime('%Y-%m-%d')
+        else:
+            fecha_fin_sql = None # Si no hay días, se mantiene nulo
+        
+        conn = mysql.connector.connect(**db_config)
+        cursor = conn.cursor()
+        sql = """
+        INSERT INTO Inversiones
+        (Id_Inversionista, Id_Tipo, Monto_Inicial, Fecha_Inicio, Fecha_Fin, Estado)
+        VALUES (%s, %s, %s, %s, %s, %s)
+        """
+        cursor.execute(sql, (
+            data.get("id_inversionista"),
+            data.get("id_tipo"),
+            data.get("monto_inicial"),
+            fecha_inicio_str,  # Usamos la fecha de inicio enviada
+            fecha_fin_sql,     # 🔑 FECHA DE FIN CALCULADA EN PYTHON
+            data.get("estado"),
+        ))
+        conn.commit()
+        cursor.close()
+        conn.close()
+        # Devolvemos la fecha final calculada para el frontend
+        return jsonify({"message": "Inversión registrada con éxito", "fecha_fin": fecha_fin_sql}), 201
+    
+    except ValueError as ve:
+        return jsonify({"error": "Formato de fecha o días inválido: " + str(ve)}), 400
+    except mysql.connector.Error as err:
+        print(f"Error de MySQL: {err}")
+        return jsonify({"error": str(err)}), 400
 
 
 # 🔹 Nuevo endpoint solo para admins
@@ -169,7 +220,6 @@ def eliminar_usuario(id):
         return jsonify({"message": "Usuario eliminado correctamente"})
     except mysql.connector.Error as err:
         return jsonify({"error": str(err)}), 400
-
 
 
 if __name__ == "__main__":

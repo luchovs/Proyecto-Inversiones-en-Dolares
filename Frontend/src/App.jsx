@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import "./App.css";
 import Usuarios from "./Usuarios";
 
-
 function App() {
   const [monto, setMonto] = useState("");
   const [tiempo, setTiempo] = useState("");
@@ -24,12 +23,14 @@ function App() {
   const [loginExitoso, setLoginExitoso] = useState(false);
 
   const [usuarioData, setUsuarioData] = useState({
+    id_inversionista: null,
     nombre: "",
     apellido: "",
     email: "",
     telefono: "",
     pais: "",
     usuario: "",
+    rol: "",
   });
 
   const INTERES_ANUAL = 0.05;
@@ -43,21 +44,23 @@ function App() {
   const [dolarOficial, setDolarOficial] = useState({
     compra: 1400,
     venta: 1450,
-    fechaActualizacion: "2025-10-27T13:54:00.000Z"
+    fechaActualizacion: "2025-10-27T13:54:00.000Z",
   });
 
-  const BTC_USD = 115682.60;
+  const BTC_USD = 115682.6;
 
   // --- Traer cotización actual de DolarApi ---
   useEffect(() => {
     const fetchDolar = async () => {
       try {
-        const response = await fetch("https://www.dolarapi.com/api/v1/dolares/oficial");
+        const response = await fetch(
+          "https://www.dolarapi.com/api/v1/dolares/oficial"
+        );
         const data = await response.json();
         setDolarOficial({
           compra: data.compra,
           venta: data.venta,
-          fechaActualizacion: data.fechaActualizacion
+          fechaActualizacion: data.fechaActualizacion,
         });
       } catch (error) {
         console.error("Error al obtener el dólar:", error);
@@ -70,68 +73,61 @@ function App() {
     return () => clearInterval(interval); // limpiar intervalo
   }, []);
 
-  const registrarInversion = async () => {
-  try {
-    const response = await fetch("http://127.0.0.1:8080/registrar_inversion", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        id_inversionista: usuarioData.id_inversionista, // del login
-        id_tipo: 1,             // ejemplo: tipo 1
-        monto_inicial: parseFloat(monto),
-        fecha_inicio: new Date().toISOString().slice(0, 10), // YYYY-MM-DD
-        fecha_fin: null,        // opcional
-        estado: "Activa"
-      })
-    });
+  const calcularInversion = async (e) => {
+    e.preventDefault();
+    const P = parseFloat(monto);
+    const dias = parseInt(tiempo);
+    const fechaInicioSQL = new Date().toISOString().slice(0, 10); // Formato YYYY-MM-DD
 
-    const data = await response.json();
-    if (response.ok) alert("Inversión registrada con éxito");
-    else alert("Error: " + data.error);
-  } catch (error) {
-    alert("Error de red: " + error);
-  }
-};  
+    if (isNaN(P) || P < 100 || P > 100000) {
+      alert("El monto debe estar entre 100 y 100000 dólares.");
+      return;
+    }
+    if (isNaN(dias) || dias < 1 || dias > 365) {
+      alert("El tiempo debe estar entre 1 y 365 días.");
+      return;
+    }
 
-const calcularInversion = async (e) => {
-  e.preventDefault();
-  const P = parseFloat(monto);
-  const dias = parseInt(tiempo);
+    const tasaDiaria = INTERES_ANUAL / 365;
+    const A = P * Math.pow(1 + tasaDiaria, dias);
+    setResultado(A.toFixed(2));
 
-  if (isNaN(P) || P < 100 || P > 100000) {
-    alert("El monto debe estar entre 100 y 100000 dólares.");
-    return;
-  }
-  if (isNaN(dias) || dias < 1 || dias > 365) {
-    alert("El tiempo debe estar entre 1 y 365 días.");
-    return;
-  }
+    // 🔹 Registrar la inversión en MySQL (solo si está logueado)
+    if (loginExitoso && usuarioData.id_inversionista) {
+      try {
+        const response = await fetch(
+          "http://127.0.0.1:8080/registrar_inversion",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              id_inversionista: usuarioData.id_inversionista,
+              id_tipo: 1,
+              monto_inicial: P,
+              fecha_inicio: fechaInicioSQL,
+              dias: dias, // 🔑 ENVIAMOS SOLO LOS DÍAS (el backend calcula la fecha_fin)
+              estado: "Activa",
+            }),
+          }
+        );
 
-  const tasaDiaria = INTERES_ANUAL / 365;
-  const A = P * Math.pow(1 + tasaDiaria, dias);
-  setResultado(A.toFixed(2));
-
-  // 🔹 Registrar la inversión en MySQL
-  try {
-    const response = await fetch("http://127.0.0.1:8080/registrar_inversion", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        id_inversionista: usuarioData.id_inversionista, // del usuario logueado
-        id_tipo: 1, // ejemplo, podés hacer un selector para tipos de inversión
-        monto_inicial: P,
-        fecha_inicio: new Date().toISOString().slice(0, 10), // YYYY-MM-DD
-        fecha_fin: null, // opcional
-        estado: "Activa"
-      })
-    });
-
-    const data = await response.json();
-    if (!response.ok) alert("Error al registrar inversión: " + data.error);
-  } catch (error) {
-    alert("Error de red al registrar inversión: " + error);
-  }
-};
+        const data = await response.json();
+        if (response.ok) {
+          console.log(
+            "Inversión registrada con éxito. Fecha Fin (Backend):",
+            data.fecha_fin
+          );
+          alert(`Inversión registrada con éxito. Vence el ${data.fecha_fin}`);
+        } else {
+          alert("Error al registrar inversión: " + data.error);
+        }
+      } catch (error) {
+        alert("Error de red al registrar inversión: " + error);
+      }
+    } else {
+      alert("Simulación exitosa. Inicia sesión para registrar la inversión.");
+    }
+  };
 
   const convertirADolares = (e) => {
     e.preventDefault();
@@ -182,7 +178,10 @@ const calcularInversion = async (e) => {
       const response = await fetch("http://127.0.0.1:8080/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ usuario: loginUsuario, password: loginPassword }),
+        body: JSON.stringify({
+          usuario: loginUsuario,
+          password: loginPassword,
+        }),
       });
       const data = await response.json();
       if (response.ok) {
@@ -213,7 +212,6 @@ const calcularInversion = async (e) => {
     }
   };
 
-
   return (
     <div className="app-container">
       <nav className="navbar">
@@ -227,16 +225,23 @@ const calcularInversion = async (e) => {
           <li onClick={() => setVista("inicio")}>Inicio</li>
           <li onClick={() => setVista("simulacion")}>Simulación</li>
           <li onClick={() => setVista("conversion")}>Conversión</li>
-          {!loginExitoso && <li onClick={() => setVista("registro")}>Regístrate</li>}
-          {!loginExitoso && <li onClick={() => setVista("login")}>Iniciar sesión</li>}
-          {loginExitoso && <li onClick={() => setVista("miCuenta")}>Mi cuenta</li>}
+          {!loginExitoso && (
+            <li onClick={() => setVista("registro")}>Regístrate</li>
+          )}
+          {!loginExitoso && (
+            <li onClick={() => setVista("login")}>Iniciar sesión</li>
+          )}
+          {loginExitoso && (
+            <li onClick={() => setVista("miCuenta")}>Mi cuenta</li>
+          )}
           {loginExitoso && usuarioData.rol === "admin" && (
-           <li onClick={() => setVista("usuarios")}>Usuarios</li>
+            <li onClick={() => setVista("usuarios")}>Usuarios</li>
           )}
           {loginExitoso && (
             <li
               onClick={() => {
                 setLoginExitoso(false);
+                setUsuarioData({}); // Limpiar datos del usuario
                 setVista("inicio");
               }}
             >
@@ -248,9 +253,9 @@ const calcularInversion = async (e) => {
 
       <main className="main-content">
         {vista === "usuarios" && loginExitoso && (
-  <Usuarios usuarioData={usuarioData} />
-)}
-        
+          <Usuarios usuarioData={usuarioData} />
+        )}
+
         {vista === "inicio" && (
           <>
             <div className="inicio-fondo">
@@ -270,27 +275,41 @@ const calcularInversion = async (e) => {
 
               <div className="faq-item">
                 <h3>¿Cuál es el monto mínimo para invertir?</h3>
-                <p>El monto mínimo es de 100 USD para comenzar una inversión.</p>
+                <p>
+                  El monto mínimo es de 100 USD para comenzar una inversión.
+                </p>
               </div>
 
               <div className="faq-item">
                 <h3>¿En cuánto tiempo puedo retirar mi dinero?</h3>
-                <p>Podés elegir plazos desde 30 hasta 365 días según tu conveniencia.</p>
+                <p>
+                  Podés elegir plazos desde 30 hasta 365 días según tu
+                  conveniencia.
+                </p>
               </div>
 
               <div className="faq-item">
                 <h3>¿Qué tasa de interés obtengo?</h3>
-                <p>La tasa anual es del 5%, y aumenta proporcionalmente según el tiempo del depósito.</p>
+                <p>
+                  La tasa anual es del 5%, y aumenta proporcionalmente según el
+                  tiempo del depósito.
+                </p>
               </div>
 
               <div className="faq-item">
                 <h3>¿Necesito tener una cuenta bancaria en dólares?</h3>
-                <p>Sí, las inversiones se realizan en cuentas en dólares para garantizar la rentabilidad en esa moneda.</p>
+                <p>
+                  Sí, las inversiones se realizan en cuentas en dólares para
+                  garantizar la rentabilidad en esa moneda.
+                </p>
               </div>
 
               <div className="faq-item">
                 <h3>¿Puedo simular mi inversión antes de invertir?</h3>
-                <p>Sí, en la sección “Simulación” podés calcular cuánto ganarías según el monto y plazo.</p>
+                <p>
+                  Sí, en la sección “Simulación” podés calcular cuánto ganarías
+                  según el monto y plazo.
+                </p>
               </div>
             </section>
           </>
@@ -299,6 +318,17 @@ const calcularInversion = async (e) => {
         {vista === "simulacion" && (
           <>
             <h1>Simulador de Inversiones en Dólares</h1>
+            {loginExitoso ? (
+              <p>
+                Estás logueado como "{usuarioData.usuario}". ¡Tu simulación se
+                guardará como una inversión!
+              </p>
+            ) : (
+              <p>
+                Regístrate o Inicia Sesión para que tu simulación se guarde.
+              </p>
+            )}
+
             <form className="form-container" onSubmit={calcularInversion}>
               <label>
                 Monto en dólares:
@@ -330,7 +360,10 @@ const calcularInversion = async (e) => {
             )}
             <div className="simulacion-fondo"></div>
             <div className="convertir-a-dolares">
-              <p>¿Tenés pesos argentinos o bitcoin y querés saber cuántos dólares podés invertir?</p>
+              <p>
+                ¿Tenés pesos argentinos o bitcoin y querés saber cuántos dólares
+                podés invertir?
+              </p>
               <button
                 className="invertir-boton"
                 onClick={() => setVista("conversion")}
@@ -341,13 +374,11 @@ const calcularInversion = async (e) => {
           </>
         )}
 
-
         {vista === "conversion" && (
           <>
             <h1>Conversión a Dólares</h1>
             <p>Valor dólar oficial: Compra $1400 | Venta $1450</p>
             <p>Última actualización: 27/10/2025 13:54</p> {/* fecha manual */}
-            
             <form className="form-container" onSubmit={convertirADolares}>
               <label>
                 Monto:
@@ -370,17 +401,16 @@ const calcularInversion = async (e) => {
               </label>
               <button type="submit">Convertir</button>
             </form>
-
             {conversionResultado && (
               <div className="result">
                 <p>
-                  El monto convertido es: <strong>${conversionResultado} USD</strong>
-                </p>  
+                  El monto convertido es:{" "}
+                  <strong>${conversionResultado} USD</strong>
+                </p>
               </div>
             )}
           </>
         )}
-
 
         {vista === "registro" && !loginExitoso && (
           <>
