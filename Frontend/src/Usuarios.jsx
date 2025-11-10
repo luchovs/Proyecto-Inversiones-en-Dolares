@@ -81,7 +81,11 @@ function Usuarios({ usuarioData }) {
       <table
         border="1"
         cellPadding="8"
-        style={{ margin: "20px auto", borderCollapse: "collapse", width: "90%" }}
+        style={{
+          margin: "20px auto",
+          borderCollapse: "collapse",
+          width: "90%",
+        }}
       >
         <thead>
           <tr style={{ backgroundColor: "#001f5b", color: "white" }}>
@@ -145,7 +149,11 @@ function Usuarios({ usuarioData }) {
                     />
                   </td>
                   <td>
-                    <input name="Rol" value={form.Rol} onChange={handleChange} />
+                    <input
+                      name="Rol"
+                      value={form.Rol}
+                      onChange={handleChange}
+                    />
                   </td>
                   <td>
                     <button onClick={() => handleSave(u.Id_Inversionista)}>
@@ -164,21 +172,20 @@ function Usuarios({ usuarioData }) {
                   <td>{u.Pais_Residencia}</td>
                   <td>{u.Usuario}</td>
                   <td>{u.Rol}</td>
-          <td>
-            <button
-              onClick={() => handleEdit(u)}
-              style={{ marginRight: "8px" }}
-            >
-              Editar
-            </button>
-            <button
-              onClick={() => handleDelete(u.Id_Inversionista)}
-              style={{ backgroundColor: "#FF0000", color: "white" }}
-            >
-              Eliminar
-            </button>
-          </td>
-
+                  <td>
+                    <button
+                      onClick={() => handleEdit(u)}
+                      style={{ marginRight: "8px" }}
+                    >
+                      Editar
+                    </button>
+                    <button
+                      onClick={() => handleDelete(u.Id_Inversionista)}
+                      style={{ backgroundColor: "#FF0000", color: "white" }}
+                    >
+                      Eliminar
+                    </button>
+                  </td>
                 </>
               )}
             </tr>

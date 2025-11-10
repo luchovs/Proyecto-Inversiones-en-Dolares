@@ -46,12 +46,12 @@ function App() {
 
   // Estado para la cotización del dólar oficial (Valores de ejemplo)
   const [dolarOficial, setDolarOficial] = useState({
-    compra: 1400,
-    venta: 1450,
-    fechaActualizacion: "2025-10-27T13:54:00.000Z",
+    compra: 1395,
+    venta: 1415,
+    fechaActualizacion: "2025-11-10T11:51:00.000Z",
   });
 
-  const BTC_USD = 115682.6;
+  const BTC_USD = 106244.2;
 
   // --- Traer cotización actual de DolarApi ---
   useEffect(() => {
