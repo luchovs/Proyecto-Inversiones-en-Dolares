@@ -17,7 +17,7 @@ test("Simulación muestra alerta y no llama al registro si no está logueado", a
     target: { value: "100" },
   });
   fireEvent.change(screen.getByLabelText(/Tiempo \(días\):/i), {
-    target: { value: "10" },
+    target: { value: "30" },
   });
   fireEvent.click(screen.getByRole("button", { name: "Calcular" }));
   expect(window.alert).toHaveBeenCalledWith(

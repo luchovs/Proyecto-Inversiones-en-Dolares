@@ -23,9 +23,12 @@ global.fetch = jest.fn((url, options) => {
 
   return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
 });
+
 window.alert = jest.fn();
 
 test("31. Simulación: Validación de Tiempo Mínimo (Días < 30)", async () => {
+  window.alert.mockClear();
+
   render(<App />);
 
   fireEvent.click(screen.getByText("Simulación"));
@@ -39,19 +42,20 @@ test("31. Simulación: Validación de Tiempo Mínimo (Días < 30)", async () => 
     target: { value: "29" },
   });
 
-  const initialSimulateCalls = global.fetch.mock.calls.filter((call) =>
-    call[0].includes("/simular")
-  ).length;
-
   fireEvent.click(calcularButton);
 
   await waitFor(
     () => {
-      const currentSimulateCalls = global.fetch.mock.calls.filter((call) =>
-        call[0].includes("/simular")
-      ).length;
-      expect(currentSimulateCalls).toBe(initialSimulateCalls);
+      expect(window.alert).toHaveBeenCalledWith(
+        "El tiempo debe estar entre 30 y 365 días."
+      );
+      expect(window.alert).toHaveBeenCalledTimes(1);
     },
     { timeout: 1500 }
   );
+
+  const simulateCalls = global.fetch.mock.calls.filter((call) =>
+    call[0].includes("/simular")
+  ).length;
+  expect(simulateCalls).toBe(0);
 });

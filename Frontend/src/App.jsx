@@ -87,8 +87,8 @@ function App() {
       alert("El monto debe estar entre 100 y 100000 dólares.");
       return;
     }
-    if (isNaN(dias) || dias < 1 || dias > 365) {
-      alert("El tiempo debe estar entre 1 y 365 días.");
+    if (isNaN(dias) || dias < 30 || dias > 365) {
+      alert("El tiempo debe estar entre 30 y 365 días.");
       return;
     }
 
